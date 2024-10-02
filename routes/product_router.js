@@ -8,6 +8,7 @@ import {
   getProductDataById,
   getTopTenCheapestProducts,
   getTopTenExpensiveProducts,
+  uploadVideo,
 } from "../controllers/product_ctrl.js";
 
 const router = express.Router();
@@ -20,5 +21,6 @@ router.get("/:id", getProductDataById);
 router.post("/add", addProductData);
 router.put("/edit/:id", editProductData);
 router.put("/delete/:id", deleteProduct);
+router.post("/upload-video", uploadVideo);
 
 export default router;

@@ -264,3 +264,36 @@ export const deleteProduct = async (req, res, next) => {
     next(err);
   }
 };
+
+export const uploadVideo = async (req, res, next) => {
+  try {
+    if (req.files["videos"]) {
+      const productVideos = req.files["videos"];
+      const videosUrls = [];
+      if (!productVideos || !Array.isArray(productVideos)) {
+        return res
+          .status(404)
+          .json({ message: "Attached files are missing or invalid." });
+      }
+
+      for (const video of productVideos) {
+        if (!video) {
+          return res
+            .status(404)
+            .json({ message: "Attached file is not an video." });
+        }
+
+        const videoUrl =
+          `${process.env.BASE_URL}` + video.path.replace(/\\/g, "/");
+        videosUrls.push(videoUrl);
+      }
+      // productData.videos = videosUrls;
+      return res.status(200).json(videosUrls);
+    }
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
