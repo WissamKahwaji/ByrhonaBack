@@ -18,6 +18,12 @@ const productSchema = new mongoose.Schema({
     priceAED: Number,
     priceUSD: Number,
   },
+  isOffer: Boolean,
+  priceAfterOffer: {
+    priceAED: Number,
+    priceUSD: Number,
+  },
+  productQuantity: Number,
 });
 
 export const Product = mongoose.model("Product", productSchema);

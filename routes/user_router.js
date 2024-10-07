@@ -1,5 +1,9 @@
 import express from "express";
-import { signin, signUp } from "../controllers/user_ctrl.js";
+import {
+  requestVoucherAmount,
+  signin,
+  signUp,
+} from "../controllers/user_ctrl.js";
 import { check } from "express-validator";
 
 const router = express.Router();
@@ -30,5 +34,7 @@ router.post(
   ],
   signUp
 );
+
+router.post("/request-amount/:userId", requestVoucherAmount);
 
 export default router;

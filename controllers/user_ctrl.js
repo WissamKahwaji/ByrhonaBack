@@ -75,3 +75,25 @@ export const signUp = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+export const requestVoucherAmount = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { amount } = req.body;
+    console.log(amount);
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.voucherAmount) {
+      user.voucherAmount = Number(user.voucherAmount) + Number(amount);
+    } else {
+      user.voucherAmount = amount;
+    }
+    await user.save();
+    return res.status(200).json(user);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error.message });
+  }
+};

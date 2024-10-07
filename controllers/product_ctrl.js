@@ -1,5 +1,11 @@
 import { CategoryModel } from "../models/category/category_model.js";
 import { Product } from "../models/product/product_model.js";
+import dotenv from "dotenv";
+import Stripe from "stripe";
+
+dotenv.config();
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY_PROD);
 
 export const getProductData = async (req, res, next) => {
   try {
@@ -93,10 +99,33 @@ export const getTopTenCheapestProducts = async (req, res, next) => {
   }
 };
 
+export const getOffersProducts = async (req, res, next) => {
+  try {
+    const offersProducts = await Product.find({ isOffer: true }).populate(
+      "category"
+    ); // Limit the results to 10 products
+    return res.status(200).json(offersProducts);
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
 export const addProductData = async (req, res, nex) => {
   try {
-    const { title, titleFr, titleAr, category, desc, descFr, descAr, price } =
-      req.body;
+    const {
+      title,
+      titleFr,
+      titleAr,
+      category,
+      desc,
+      descFr,
+      descAr,
+      price,
+      productQuantity,
+    } = req.body;
 
     const categoryData = await CategoryModel.findById(category);
 
@@ -120,6 +149,7 @@ export const addProductData = async (req, res, nex) => {
       descFr: descFr,
       descAr: descAr,
       price: price,
+      productQuantity: productQuantity,
     };
 
     if (req.files["imgs"]) {
@@ -183,7 +213,16 @@ export const addProductData = async (req, res, nex) => {
 export const editProductData = async (req, res, next) => {
   try {
     const { id } = req.params; // Assuming product ID is passed as a URL param
-    const { title, titleFr, titleAr, desc, descFr, descAr, price } = req.body;
+    const {
+      title,
+      titleFr,
+      titleAr,
+      desc,
+      descFr,
+      descAr,
+      price,
+      productQuantity,
+    } = req.body;
 
     // Find existing product by ID
     const product = await Product.findById(id);
@@ -199,6 +238,7 @@ export const editProductData = async (req, res, next) => {
     product.descFr = descFr || product.descFr;
     product.descAr = descAr || product.descAr;
     product.price = price || product.price;
+    product.productQuantity = productQuantity || product.productQuantity;
 
     const imgPath =
       req.files && req.files["img"] ? req.files["img"][0].path : null;
@@ -295,5 +335,55 @@ export const uploadVideo = async (req, res, next) => {
       err.statusCode = 500;
     }
     next(err);
+  }
+};
+
+export const editallProductQuantity = async (req, res, next) => {
+  try {
+    const products = await Product.find();
+    products.forEach(async product => {
+      product.productQuantity = 10; // Set the quantity
+      await product.save(); // Save each updated product
+    });
+
+    return res.status(200).json("success");
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+export const createPaymentIntent = async (req, res) => {
+  try {
+    const { amount } = req.body;
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount * 100,
+      currency: "aed",
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+    console.log(paymentIntent);
+    res.status(200).json({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json("Something went wrong");
+  }
+};
+
+export const getConfig = async (req, res) => {
+  try {
+    const publicKey = process.env.STRIPE_PUBLIC_KEY_PROD;
+    res.status(200).json({
+      publicKey: publicKey,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json("Something went wrong");
   }
 };

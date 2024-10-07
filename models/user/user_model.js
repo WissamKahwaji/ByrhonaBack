@@ -14,6 +14,8 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
   },
+
+  voucherAmount: Number,
 });
 
 export const UserModel = mongoose.model("user", userSchema);
