@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  getUserById,
   requestVoucherAmount,
   signin,
   signUp,
@@ -36,5 +37,6 @@ router.post(
 );
 
 router.post("/request-amount/:userId", requestVoucherAmount);
+router.get("/byId/:userId", getUserById);
 
 export default router;

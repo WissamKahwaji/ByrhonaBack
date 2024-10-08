@@ -16,6 +16,7 @@ import productssRoutes from "./routes/product_router.js";
 import collectionsRoutes from "./routes/collection_router.js";
 import userRoutes from "./routes/user_router.js";
 import orderRoutes from "./routes/order_router.js";
+import voucherRoutes from "./routes/voucher_router.js";
 
 const app = express();
 dotenv.config();
@@ -71,6 +72,7 @@ app.use("/products", productssRoutes);
 app.use("/collections", collectionsRoutes);
 app.use("/user", userRoutes);
 app.use("/order", orderRoutes);
+app.use("/voucher", voucherRoutes);
 
 app.get("/", (req, res) => res.send("Server is Ready"));
 

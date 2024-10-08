@@ -16,6 +16,10 @@ const userSchema = new mongoose.Schema({
   },
 
   voucherAmount: Number,
+  voucher: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "voucher",
+  },
 });
 
 export const UserModel = mongoose.model("user", userSchema);

@@ -1,5 +1,7 @@
 import { orderModel } from "../models/order/order_model.js";
 import { Product } from "../models/product/product_model.js";
+import { UserModel } from "../models/user/user_model.js";
+import { voucherModel } from "../models/voucher/voucher_model.js";
 
 export const getUserOrders = async (req, res) => {
   try {
@@ -34,7 +36,35 @@ export const addOrder = async (req, res) => {
       cartItemsTotalPrice,
       paymentMethod,
       cartItems,
+      isUseVoucher,
     } = req.body;
+
+    let voucherAmountToDeduct = 0;
+
+    if (isUseVoucher === true) {
+      const user = await UserModel.findById(userId).session(session);
+      if (!user) {
+        throw new Error("User not found");
+      }
+      if (!user.voucher) {
+        throw new Error("User does not have a voucher");
+      }
+      const userVoucherId = user.voucher;
+      const voucher = await voucherModel
+        .findById(userVoucherId)
+        .session(session);
+      if (!voucher) {
+        throw new Error("Voucher not found");
+      }
+      voucherAmountToDeduct = Math.min(voucher.amount, cartItemsTotalPrice);
+      const remainingVoucherAmount = voucher.amount - voucherAmountToDeduct;
+
+      // Update the voucher's remaining amount
+      voucher.amount = remainingVoucherAmount;
+      await voucher.save({ session });
+    }
+
+    const finalOrderTotal = cartItemsTotalPrice - voucherAmountToDeduct;
 
     // Create new order
     const newOrder = new orderModel({
@@ -50,9 +80,10 @@ export const addOrder = async (req, res) => {
       userMobileNumber,
       userNote,
       orderStatus,
-      cartItemsTotalPrice,
+      cartItemsTotalPrice: finalOrderTotal,
       paymentMethod,
       cartItems,
+      isUseVoucher,
     });
 
     // Save the order

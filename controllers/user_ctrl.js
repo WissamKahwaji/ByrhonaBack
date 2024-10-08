@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { UserModel } from "../models/user/user_model.js";
 import { validationResult } from "express-validator";
+import jwt from "jsonwebtoken";
 
 export const signin = async (req, res) => {
   const { email, password } = req.body;
@@ -27,10 +28,15 @@ export const signin = async (req, res) => {
     );
     if (!isPasswordCorrect)
       return res.status(401).json({ message: "Invalid credentials" });
-
+    const token = jwt.sign(
+      { email: existingUser.email, id: existingUser._id },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "1y" }
+    );
     res.status(200).json({
       result: existingUser,
       message: "LogIn Successfuled",
+      token: token,
     });
   } catch (error) {
     console.log(error);
@@ -65,10 +71,16 @@ export const signUp = async (req, res) => {
     });
 
     await newUser.save();
+    const token = jwt.sign(
+      { email: newUser.email, id: newUser._id },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "1y" }
+    );
 
     return res.status(201).json({
       result: newUser,
       message: "User created",
+      token: token,
     });
   } catch (error) {
     console.log(error);
@@ -91,6 +103,20 @@ export const requestVoucherAmount = async (req, res) => {
       user.voucherAmount = amount;
     }
     await user.save();
+    return res.status(200).json(user);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const getUserById = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     return res.status(200).json(user);
   } catch (error) {
     console.log(error);
