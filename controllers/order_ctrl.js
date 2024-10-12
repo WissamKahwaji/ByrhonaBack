@@ -3,6 +3,29 @@ import { Product } from "../models/product/product_model.js";
 import { UserModel } from "../models/user/user_model.js";
 import { voucherModel } from "../models/voucher/voucher_model.js";
 
+export const getOrders = async (req, res) => {
+  try {
+    const orders = await orderModel.find().sort({ createdAt: -1 });
+
+    return res.status(200).json(orders);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json("Something went wrong");
+  }
+};
+
+export const getOrderById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await orderModel.findById(id);
+
+    return res.status(200).json(order);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json("Something went wrong");
+  }
+};
+
 export const getUserOrders = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -125,5 +148,27 @@ export const addOrder = async (req, res) => {
       message: "Something went wrong while processing the order.",
       error: error.message,
     });
+  }
+};
+
+export const deleteOrderById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+    const adminId = process.env.ADMIN_ID;
+
+    if (userId !== adminId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+    const order = await orderModel.findByIdAndDelete(id);
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    return res.status(200).json(order);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Something went wrong" });
   }
 };

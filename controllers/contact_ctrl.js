@@ -61,6 +61,12 @@ export const editContactData = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, content } = req.body;
+    const userId = req.userId;
+    const adminId = process.env.ADMIN_ID;
+
+    if (userId !== adminId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
 
     const contact = await contactModel.findById(id);
 

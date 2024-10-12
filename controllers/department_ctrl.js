@@ -15,7 +15,9 @@ export const getDepartmentsData = async (req, res, next) => {
 export const getDepartmentById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const departmentData = await DepartmentModel.findById(id);
+    const departmentData = await DepartmentModel.findById(id).populate(
+      "categories"
+    );
     return res.status(200).json(departmentData);
   } catch (err) {
     if (!err.statusCode) {
@@ -28,6 +30,12 @@ export const getDepartmentById = async (req, res, next) => {
 export const addDepartmentData = async (req, res, next) => {
   try {
     const { name, nameAr, nameFr } = req.body;
+    const userId = req.userId;
+    const adminId = process.env.ADMIN_ID;
+
+    if (userId !== adminId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
     const imgPath =
       req.files && req.files["img"] ? req.files["img"][0].path : null;
     const imgUrl = imgPath
@@ -54,6 +62,12 @@ export const editDepartmentData = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { name, nameAr, nameFr } = req.body;
+    const userId = req.userId;
+    const adminId = process.env.ADMIN_ID;
+
+    if (userId !== adminId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
     const imgPath =
       req.files && req.files["img"] ? req.files["img"][0].path : null;
     const imgUrl = imgPath
@@ -84,7 +98,12 @@ export const editDepartmentData = async (req, res, next) => {
 export const deleteDepartmentData = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
+    const adminId = process.env.ADMIN_ID;
 
+    if (userId !== adminId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
     // Find the product type
     const department = await DepartmentModel.findById(id);
 

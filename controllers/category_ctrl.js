@@ -58,6 +58,12 @@ export const getCategoriesWithProducts = async (req, res, next) => {
 export const addCategoryData = async (req, res, next) => {
   try {
     const { name, nameAr, nameFr, department } = req.body;
+    const userId = req.userId;
+    const adminId = process.env.ADMIN_ID;
+
+    if (userId !== adminId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
 
     const departmentData = await DepartmentModel.findById(department);
 
@@ -95,6 +101,12 @@ export const editCategoryData = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { name, nameAr, nameFr } = req.body;
+    const userId = req.userId;
+    const adminId = process.env.ADMIN_ID;
+
+    if (userId !== adminId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
     const imgPath =
       req.files && req.files["img"] ? req.files["img"][0].path : null;
     const imgUrl = imgPath
@@ -125,13 +137,29 @@ export const editCategoryData = async (req, res, next) => {
 export const deleteCategoryData = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
+    const adminId = process.env.ADMIN_ID;
 
+    if (userId !== adminId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
     // Find the product type
     const category = await CategoryModel.findById(id);
 
     if (!category) {
       return res.status(404).json("Category not found");
     }
+
+    const department = await DepartmentModel.findById(category.department);
+
+    if (!department) {
+      return res.status(404).json("Department not found");
+    }
+
+    department.categories = department.categories.filter(
+      categoryId => categoryId.toString() !== id
+    );
+    await department.save();
 
     const productIds = category.products;
 

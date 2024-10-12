@@ -124,8 +124,17 @@ export const addProductData = async (req, res, nex) => {
       descFr,
       descAr,
       price,
+      isOffer,
+      priceAfterOffer,
       productQuantity,
     } = req.body;
+
+    const userId = req.userId;
+    const adminId = process.env.ADMIN_ID;
+
+    if (userId !== adminId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
 
     const categoryData = await CategoryModel.findById(category);
 
@@ -149,6 +158,8 @@ export const addProductData = async (req, res, nex) => {
       descFr: descFr,
       descAr: descAr,
       price: price,
+      isOffer,
+      priceAfterOffer,
       productQuantity: productQuantity,
     };
 
@@ -221,9 +232,17 @@ export const editProductData = async (req, res, next) => {
       descFr,
       descAr,
       price,
+      isOffer,
+      priceAfterOffer,
       productQuantity,
     } = req.body;
 
+    const userId = req.userId;
+    const adminId = process.env.ADMIN_ID;
+
+    if (userId !== adminId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
     // Find existing product by ID
     const product = await Product.findById(id);
 
@@ -238,6 +257,8 @@ export const editProductData = async (req, res, next) => {
     product.descFr = descFr || product.descFr;
     product.descAr = descAr || product.descAr;
     product.price = price || product.price;
+    product.isOffer = isOffer || product.isOffer;
+    product.priceAfterOffer = priceAfterOffer || product.priceAfterOffer;
     product.productQuantity = productQuantity || product.productQuantity;
 
     const imgPath =
@@ -259,6 +280,28 @@ export const editProductData = async (req, res, next) => {
       }
       product.imgs = imageUrls;
     }
+    if (req.files["videos"]) {
+      const productVideos = req.files["videos"];
+      const videosUrls = [];
+      if (!productVideos || !Array.isArray(productVideos)) {
+        return res
+          .status(404)
+          .json({ message: "Attached files are missing or invalid." });
+      }
+
+      for (const video of productVideos) {
+        if (!video) {
+          return res
+            .status(404)
+            .json({ message: "Attached file is not an image." });
+        }
+
+        const videoUrl =
+          `${process.env.BASE_URL}` + video.path.replace(/\\/g, "/");
+        videosUrls.push(videoUrl);
+      }
+      product.videos = videosUrls;
+    }
 
     // Save updated product
     const updatedProduct = await product.save();
@@ -275,7 +318,12 @@ export const editProductData = async (req, res, next) => {
 export const deleteProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
+    const adminId = process.env.ADMIN_ID;
 
+    if (userId !== adminId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
     const product = await Product.findById(id);
 
     if (!product) {

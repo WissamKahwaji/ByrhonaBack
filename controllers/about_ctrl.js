@@ -53,6 +53,12 @@ export const addAboutData = async (req, res) => {
 export const editAboutData = async (req, res, next) => {
   try {
     const { title, content } = req.body;
+    const userId = req.userId;
+    const adminId = process.env.ADMIN_ID;
+
+    if (userId !== adminId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
     const imgPath =
       req.files && req.files["img"] ? req.files["img"][0].path : null;
     const imgUrl = imgPath
@@ -69,7 +75,11 @@ export const editAboutData = async (req, res, next) => {
         content.map(async (item, index) => {
           return {
             title: item.title,
-            description: item.description,
+            text: item.text,
+            titleFr: item.titleFr,
+            textFr: item.textFr,
+            titleAr: item.titleAr,
+            textAr: item.textAr,
             img: existingAboutData.content[index].img,
           };
         })
