@@ -1,6 +1,9 @@
 import express from "express";
 import {
+  addProductToFavorites,
+  getAllFavorites,
   getUserById,
+  removeProductFromFavorites,
   requestVoucherAmount,
   signin,
   signUp,
@@ -37,6 +40,10 @@ router.post(
 );
 
 router.post("/request-amount/:userId", requestVoucherAmount);
+router.post("/favorites/add", addProductToFavorites);
+router.post("/favorites/remove", removeProductFromFavorites);
+
+router.get("/favorites/:userId", getAllFavorites);
 router.get("/byId/:userId", getUserById);
 
 export default router;

@@ -1,6 +1,7 @@
 import express from "express";
 import {
   addProductData,
+  addUserToNotifyList,
   createPaymentIntent,
   deleteProduct,
   editallProductQuantity,
@@ -28,6 +29,7 @@ router.put("/edit/:id", auth, editProductData);
 router.delete("/delete/:id", auth, deleteProduct);
 router.post("/upload-video", uploadVideo);
 router.post("/edit-product-quantity", editallProductQuantity);
+router.post("/add-to-notify-list", addUserToNotifyList);
 router.post("/create-payment", createPaymentIntent);
 router.get("/config", getConfig);
 router.get("/:id", getProductDataById);

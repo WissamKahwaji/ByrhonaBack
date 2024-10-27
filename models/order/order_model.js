@@ -17,6 +17,8 @@ const orderSchema = new mongoose.Schema(
     cartItemsTotalPrice: Number,
     paymentMethod: String,
     isUseVoucher: Boolean,
+    UsedVoucherAmount: Number,
+    deliveryFee: Number,
     cartItems: [
       {
         id: String,

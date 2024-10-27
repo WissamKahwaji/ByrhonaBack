@@ -2,6 +2,8 @@ import { CategoryModel } from "../models/category/category_model.js";
 import { Product } from "../models/product/product_model.js";
 import dotenv from "dotenv";
 import Stripe from "stripe";
+import { UserModel } from "../models/user/user_model.js";
+import nodemailer from "nodemailer";
 
 dotenv.config();
 
@@ -235,7 +237,10 @@ export const editProductData = async (req, res, next) => {
       isOffer,
       priceAfterOffer,
       productQuantity,
+      removeProductsImages,
     } = req.body;
+
+    console.log(removeProductsImages);
 
     const userId = req.userId;
     const adminId = process.env.ADMIN_ID;
@@ -248,6 +253,13 @@ export const editProductData = async (req, res, next) => {
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
+    }
+    const wasOutOfStock = product.productQuantity === 0;
+
+    if (removeProductsImages) {
+      product.imgs = product.imgs.filter(
+        image => !removeProductsImages.includes(image)
+      );
     }
 
     product.title = title || product.title;
@@ -278,7 +290,7 @@ export const editProductData = async (req, res, next) => {
           imageUrls.push(imageUrl);
         }
       }
-      product.imgs = imageUrls;
+      product.imgs = product.imgs.concat(imageUrls);
     }
     if (req.files["videos"]) {
       const productVideos = req.files["videos"];
@@ -305,6 +317,44 @@ export const editProductData = async (req, res, next) => {
 
     // Save updated product
     const updatedProduct = await product.save();
+
+    // if (
+    //   wasOutOfStock &&
+    //   updatedProduct.productQuantity > 0 &&
+    //   updatedProduct.notifyUsers.length > 0
+    // ) {
+    //   const users = await UserModel.find({
+    //     _id: { $in: updatedProduct.notifyUsers },
+    //   });
+    //   const emails = users.map(user => user.email);
+
+    //   const transporter = nodemailer.createTransport({
+    //     service: "Gmail", // Replace with your email service
+    //     auth: {
+    //       user: process.env.EMAIL_USER,
+    //       pass: process.env.EMAIL_PASS,
+    //     },
+    //   });
+
+    //   const mailOptions = {
+    //     from: process.env.EMAIL_USER,
+    //     to: emails,
+    //     subject: "Product Back in Stock!",
+    //     text: `The product ${updatedProduct.title} is back in stock! Visit our website to place your order.`,
+    //   };
+
+    //   transporter.sendMail(mailOptions, (error, info) => {
+    //     if (error) {
+    //       console.log("Error sending email:", error);
+    //     } else {
+    //       console.log("Emails sent:", info.response);
+    //     }
+    //   });
+
+    //   // Clear the notifyUsers list
+    //   updatedProduct.notifyUsers = [];
+    //   await updatedProduct.save();
+    // }
 
     return res.status(200).json(updatedProduct);
   } catch (err) {
@@ -395,6 +445,27 @@ export const editallProductQuantity = async (req, res, next) => {
     });
 
     return res.status(200).json("success");
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+export const addUserToNotifyList = async (req, res, next) => {
+  const { productId, userId } = req.body;
+
+  try {
+    const product = await Product.findById(productId);
+
+    // Check if the user is already in the notify list
+    if (!product.notifyUsers.includes(userId)) {
+      product.notifyUsers.push(userId);
+      await product.save();
+    }
+
+    res.status(200).json({ message: "User added to notify list" });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

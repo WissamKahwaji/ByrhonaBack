@@ -18,6 +18,8 @@ import userRoutes from "./routes/user_router.js";
 import orderRoutes from "./routes/order_router.js";
 import voucherRoutes from "./routes/voucher_router.js";
 import adminRoutes from "./routes/admin_router.js";
+import logoRoutes from "./routes/logo_router.js";
+import deliveryFeeRoutes from "./routes/delivery_fee_router.js";
 
 const app = express();
 dotenv.config();
@@ -58,7 +60,7 @@ app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).fields([
     { name: "img", maxCount: 1 },
     { name: "imgs", maxCount: 5 },
-    { name: "mainSliderImg", maxCount: 5 },
+    { name: "mainSliderImg", maxCount: 9 },
     { name: "contentImgs", maxCount: 5 },
     { name: "videos", maxCount: 5 },
   ])
@@ -75,6 +77,8 @@ app.use("/user", userRoutes);
 app.use("/order", orderRoutes);
 app.use("/voucher", voucherRoutes);
 app.use("/admin", adminRoutes);
+app.use("/logo", logoRoutes);
+app.use("/deliveryFee", deliveryFeeRoutes);
 
 app.get("/", (req, res) => res.send("Server is Ready"));
 

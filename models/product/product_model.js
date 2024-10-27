@@ -24,6 +24,12 @@ const productSchema = new mongoose.Schema({
     priceUSD: Number,
   },
   productQuantity: Number,
+  notifyUsers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
 });
 
 export const Product = mongoose.model("Product", productSchema);

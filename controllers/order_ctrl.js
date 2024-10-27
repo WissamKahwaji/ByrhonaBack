@@ -29,7 +29,9 @@ export const getOrderById = async (req, res) => {
 export const getUserOrders = async (req, res) => {
   try {
     const { userId } = req.params;
-    const orders = await orderModel.find({ userId: userId });
+    const orders = await orderModel
+      .find({ userId: userId })
+      .sort({ createdAt: -1 });
 
     return res.status(200).json(orders);
   } catch (error) {
@@ -60,6 +62,7 @@ export const addOrder = async (req, res) => {
       paymentMethod,
       cartItems,
       isUseVoucher,
+      deliveryFee,
     } = req.body;
 
     let voucherAmountToDeduct = 0;
@@ -87,7 +90,8 @@ export const addOrder = async (req, res) => {
       await voucher.save({ session });
     }
 
-    const finalOrderTotal = cartItemsTotalPrice - voucherAmountToDeduct;
+    const finalOrderTotal =
+      cartItemsTotalPrice - voucherAmountToDeduct + deliveryFee;
 
     // Create new order
     const newOrder = new orderModel({
@@ -107,6 +111,8 @@ export const addOrder = async (req, res) => {
       paymentMethod,
       cartItems,
       isUseVoucher,
+      UsedVoucherAmount: voucherAmountToDeduct,
+      deliveryFee,
     });
 
     // Save the order

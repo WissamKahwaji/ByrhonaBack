@@ -20,6 +20,16 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "voucher",
   },
+  favorites: {
+    products: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+        },
+      },
+    ],
+  },
 });
 
 export const UserModel = mongoose.model("user", userSchema);
