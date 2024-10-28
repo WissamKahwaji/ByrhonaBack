@@ -120,6 +120,9 @@ export const editContactData = async (req, res) => {
       if (content.tiktok) {
         contactContent.tiktok = content.tiktok;
       }
+      if (content.snapChat) {
+        contactContent.snapChat = content.snapChat;
+      }
 
       // Save the updated contactContent
       await contactContent.save();

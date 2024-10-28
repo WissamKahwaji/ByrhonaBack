@@ -20,6 +20,7 @@ import voucherRoutes from "./routes/voucher_router.js";
 import adminRoutes from "./routes/admin_router.js";
 import logoRoutes from "./routes/logo_router.js";
 import deliveryFeeRoutes from "./routes/delivery_fee_router.js";
+import clientsReviewsRoutes from "./routes/clients_reviews_router.js";
 
 const app = express();
 dotenv.config();
@@ -79,6 +80,7 @@ app.use("/voucher", voucherRoutes);
 app.use("/admin", adminRoutes);
 app.use("/logo", logoRoutes);
 app.use("/deliveryFee", deliveryFeeRoutes);
+app.use("/clientsReviews", clientsReviewsRoutes);
 
 app.get("/", (req, res) => res.send("Server is Ready"));
 

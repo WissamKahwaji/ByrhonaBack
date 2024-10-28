@@ -238,9 +238,8 @@ export const editProductData = async (req, res, next) => {
       priceAfterOffer,
       productQuantity,
       removeProductsImages,
+      removeProductsVideos,
     } = req.body;
-
-    console.log(removeProductsImages);
 
     const userId = req.userId;
     const adminId = process.env.ADMIN_ID;
@@ -259,6 +258,11 @@ export const editProductData = async (req, res, next) => {
     if (removeProductsImages) {
       product.imgs = product.imgs.filter(
         image => !removeProductsImages.includes(image)
+      );
+    }
+    if (removeProductsVideos) {
+      product.videos = product.videos.filter(
+        video => !removeProductsVideos.includes(video)
       );
     }
 
@@ -312,49 +316,59 @@ export const editProductData = async (req, res, next) => {
           `${process.env.BASE_URL}` + video.path.replace(/\\/g, "/");
         videosUrls.push(videoUrl);
       }
-      product.videos = videosUrls;
+
+      product.videos = product.videos.concat(videosUrls);
     }
 
     // Save updated product
     const updatedProduct = await product.save();
 
-    // if (
-    //   wasOutOfStock &&
-    //   updatedProduct.productQuantity > 0 &&
-    //   updatedProduct.notifyUsers.length > 0
-    // ) {
-    //   const users = await UserModel.find({
-    //     _id: { $in: updatedProduct.notifyUsers },
-    //   });
-    //   const emails = users.map(user => user.email);
+    if (
+      wasOutOfStock &&
+      updatedProduct.productQuantity > 0 &&
+      updatedProduct.notifyUsers.length > 0
+    ) {
+      const users = await UserModel.find({
+        _id: { $in: updatedProduct.notifyUsers },
+      });
+      const emails = users.map(user => user.email);
 
-    //   const transporter = nodemailer.createTransport({
-    //     service: "Gmail", // Replace with your email service
-    //     auth: {
-    //       user: process.env.EMAIL_USER,
-    //       pass: process.env.EMAIL_PASS,
-    //     },
-    //   });
+      const transporter = nodemailer.createTransport({
+        host: "smtp.titan.email",
+        secure: true,
+        secureConnection: false,
+        tls: {
+          ciphers: "SSLv3",
+        },
+        requireTLS: true,
+        port: 465,
+        debug: true,
+        connectionTimeout: 10000,
+        auth: {
+          user: "info@thetriple-r.com",
+          pass: "8Ue?4AaVM0S",
+        },
+      });
 
-    //   const mailOptions = {
-    //     from: process.env.EMAIL_USER,
-    //     to: emails,
-    //     subject: "Product Back in Stock!",
-    //     text: `The product ${updatedProduct.title} is back in stock! Visit our website to place your order.`,
-    //   };
+      const mailOptions = {
+        from: "info@thetriple-r.com",
+        to: emails,
+        subject: "Product Back in Stock!",
+        text: `The product ${updatedProduct.title} is back in stock! Visit our website to place your order.`,
+      };
 
-    //   transporter.sendMail(mailOptions, (error, info) => {
-    //     if (error) {
-    //       console.log("Error sending email:", error);
-    //     } else {
-    //       console.log("Emails sent:", info.response);
-    //     }
-    //   });
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log("Error sending email:", error);
+        } else {
+          console.log("Emails sent:", info.response);
+        }
+      });
 
-    //   // Clear the notifyUsers list
-    //   updatedProduct.notifyUsers = [];
-    //   await updatedProduct.save();
-    // }
+      // Clear the notifyUsers list
+      updatedProduct.notifyUsers = [];
+      await updatedProduct.save();
+    }
 
     return res.status(200).json(updatedProduct);
   } catch (err) {
