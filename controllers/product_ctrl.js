@@ -115,7 +115,7 @@ export const getOffersProducts = async (req, res, next) => {
   }
 };
 
-export const addProductData = async (req, res, nex) => {
+export const addProductData = async (req, res, next) => {
   try {
     const {
       title,
@@ -163,6 +163,7 @@ export const addProductData = async (req, res, nex) => {
       isOffer,
       priceAfterOffer,
       productQuantity: productQuantity,
+      imgs: [],
     };
 
     if (req.files["imgs"]) {

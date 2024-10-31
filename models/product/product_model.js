@@ -18,7 +18,10 @@ const productSchema = new mongoose.Schema({
     priceAED: Number,
     priceUSD: Number,
   },
-  isOffer: Boolean,
+  isOffer: {
+    type: Boolean,
+    default: false,
+  },
   priceAfterOffer: {
     priceAED: Number,
     priceUSD: Number,
